@@ -62,7 +62,11 @@
     #######################################################################
     # Custom python 3 package.
     python34-kaictl = pkgs.stdenv.lib.hiPrio (
-      callPackage ./pkgs/python/3.4/python34.nix {
+      callPackage /nix/nixpkgs/pkgs/development/interpreters/python/3.4 {
+        libX11 = null;
+        xproto = null;
+        tcl = null;
+        tk = null;
         self = pkgs.python34;
       }
     );

@@ -1,1 +1,0 @@
-/nix/nixpkgs/pkgs/development/interpreters/python/wrapper.nix

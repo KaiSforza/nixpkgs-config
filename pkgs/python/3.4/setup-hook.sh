@@ -1,1 +1,0 @@
-/nix/nixpkgs/pkgs/development/interpreters/python/3.4/setup-hook.sh
