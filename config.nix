@@ -1,18 +1,19 @@
 {
   packageOverrides = pkgs:
-    # For version declarations and such
-    let 
-      ipythonVersion = builtins.parseDrvName pkgs.python34Packages.ipython.name;
-      vimV = {
-        name = "vim-python3";
-        majVer = "7";
-        minVer = "4";
-        patch = "712";
-      };
-      callPackage = (extra: pkgs.stdenv.lib.callPackageWith (pkgs // pkgs.xorg)) {};
+  # For version declarations and such
+  let
+    vimV = {
+      name = "vim-python3";
+      majVer = "7";
+      minVer = "4";
+      patch = "712";
+    };
+    # For package building from custom files.
+    callPackage = (extra: pkgs.stdenv.lib.callPackageWith (pkgs // pkgs.xorg)) {};
+    recurseIntoAttrs = attrs: attrs // { recurseForDerivations = true; };
 
-    # Main changes
-    in rec {
+  # Main changes
+  in rec {
     # Build hub from git
     hub-kaictl = pkgs.stdenv.lib.overrideDerivation pkgs.gitAndTools.hub (oldAttrs: {
       name = "hubUnstable";
@@ -32,13 +33,6 @@
       };
     });
 
-    # Custom python 3 package.
-    python34-kaictl = pkgs.stdenv.lib.hiPrio (
-      callPackage ./pkgs/python/3.4/python34.nix {
-        self = pkgs.python34;
-      }
-    );
-
     vim-python3 = pkgs.stdenv.lib.overrideDerivation 
       (pkgs.vim_configurable_nogui.override {
         config.vim = {
@@ -53,16 +47,41 @@
       })
       (oldAttrs: {
       name = "vim-python3-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
-      src = pkgs.fetchhg {
-        url = "http://vim.googlecode.com/hg/";
-        rev = "v${vimV.majVer}-${vimV.minVer}-${vimV.patch}";
+      src = pkgs.fetchgit {
+        url = "http://github.com/vim/vim";
+        # url = "http://github.com/vim-jp/vim";
+        rev = "refs/tags/v${vimV.majVer}-${vimV.minVer}-${vimV.patch}";
+        # sha256 = "0irp4cd6hcgzz3w5fjxvqvlfclayi2wg67h3y6y517y9l08pslnw";
+        sha256 = "00kv5fvhsdvpcnf8ca9xs3gz3fr8jvnb8r5znwwadxhv73gzlf01";
+        # sha256 = "0irp4cd6hcgzz3w5fjxvqvlfclayi2wg67h3y6y517y9l08pslnw";
       };
     });
 
-    ipython3 = with pkgs; buildEnv {
-      name = "ipython3-" + ipythonVersion.version;
-      paths = [ pkgs.python34Packages.ipython ];
+    #######################################################################
+    ###                          Custom Packages                        ###
+    #######################################################################
+    # Custom python 3 package.
+    python34-kaictl = pkgs.stdenv.lib.hiPrio (
+      callPackage ./pkgs/python/3.4/python34.nix {
+        self = pkgs.python34;
+      }
+    );
+    # Sets up python34 packages to be built against my python34-kaictl
+    python34Packages-kaictl = recurseIntoAttrs (callPackage /nix/nixpkgs/pkgs/top-level/python-packages.nix {
+      python = python34-kaictl;
+      self = python34Packages-kaictl;
+    });
+    # builds ipython3 without a bunch of gui stuff.
+    ipython3 = callPackage /nix/nixpkgs/pkgs/shells/ipython {
+      buildPythonPackage = python34Packages-kaictl.buildPythonPackage;
+      pythonPackages = python34Packages-kaictl;
+      pyqt4 = false;
+      notebookSupport = false;
+      qtconsoleSupport = false;
+      pylabSupport = false;
+      pylabQtSupport = false;
     };
+
   };
   allowUnfree = true;
 }
