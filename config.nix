@@ -1,5 +1,5 @@
 {
-  packageOverrides = pkgs:
+  packageOverrides = pkgs: with pkgs;
   # For version declarations and such
   let
     vimV = {
@@ -8,33 +8,29 @@
       minVer = "4";
       patch = "712";
     };
-    # For package building from custom files.
-    callPackage = (extra: pkgs.stdenv.lib.callPackageWith (pkgs // pkgs.xorg)) {};
-    recurseIntoAttrs = attrs: attrs // { recurseForDerivations = true; };
-
   # Main changes
   in rec {
     # Build hub from git
-    hub-kaictl = pkgs.stdenv.lib.overrideDerivation pkgs.gitAndTools.hub (oldAttrs: {
+    hub-kaictl = stdenv.lib.overrideDerivation gitAndTools.hub (oldAttrs: {
       name = "hubUnstable";
-      src = pkgs.fetchgit {
+      src = fetchgit {
         url = "http://github.com/github/hub";
         rev = "64187e3cb84c6956826acad2803958730a7ea180";
         sha256 = "0s797d9gjbj0rh9lgi4dkc3kpibbih0y2fv92h8q3ai7q54gx84q";
       };
     });
 
-    macvim-kaictl = pkgs.stdenv.lib.overrideDerivation pkgs.macvim (oldAttrs: {
+    macvim-kaictl = stdenv.lib.overrideDerivation macvim (oldAttrs: {
       name = "macvim-7.4.648";
-      src = pkgs.fetchgit {
+      src = fetchgit {
         url = "http://github.com/genoma/macvim";
         rev = "408cf6d87102ef68c15ef32c35c10826467c22bd";
         sha256 = "0yp7y981smnq1fipg3dx2k0d3gw8vv4kdy8152xvdbd7v4lja9nl";
       };
     });
 
-    vim-python3 = pkgs.stdenv.lib.overrideDerivation 
-      (pkgs.vim_configurable_nogui.override {
+    vim-python3 = stdenv.lib.overrideDerivation 
+      (vim_configurable_nogui.override {
         config.vim = {
           python = true;
           lua = true;
@@ -42,16 +38,16 @@
           ruby = false;
           gui = false;
         };
-        ruby = pkgs.ruby;
-        lua = pkgs.lua5_1;
-        darwinSupport = pkgs.stdenv.isDarwin;
+        ruby = ruby;
+        lua = lua5_1;
+        darwinSupport = stdenv.isDarwin;
         guiSupport = false;
         multibyteSupport = true;
         python = python34-kaictl;
       })
       (oldAttrs: {
       name = "vim-python3-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
-      src = pkgs.fetchgit {
+      src = fetchgit {
         url = "http://github.com/vim/vim";
         # url = "http://github.com/vim-jp/vim";
         rev = "refs/tags/v${vimV.majVer}-${vimV.minVer}-${vimV.patch}";
@@ -65,13 +61,13 @@
     ###                          Custom Packages                        ###
     #######################################################################
     # Custom python 3 package.
-    python34-kaictl = pkgs.stdenv.lib.hiPrio (
+    python34-kaictl = stdenv.lib.hiPrio (
       callPackage /nix/nixpkgs/pkgs/development/interpreters/python/3.4 {
         libX11 = null;
         xproto = null;
         tcl = null;
         tk = null;
-        self = pkgs.python34;
+        self = python34;
       }
     );
     # Sets up python34 packages to be built against my python34-kaictl
