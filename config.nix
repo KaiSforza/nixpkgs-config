@@ -42,8 +42,12 @@
           ruby = false;
           gui = false;
         };
+        ruby = pkgs.ruby;
+        lua = pkgs.lua5_1;
+        darwinSupport = pkgs.stdenv.isDarwin;
+        guiSupport = false;
+        multibyteSupport = true;
         python = python34-kaictl;
-        lua = pkgs.lua;
       })
       (oldAttrs: {
       name = "vim-python3-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
@@ -85,7 +89,6 @@
       pylabSupport = false;
       pylabQtSupport = false;
     };
-
   };
   allowUnfree = true;
 }
