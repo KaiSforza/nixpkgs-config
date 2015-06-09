@@ -6,7 +6,7 @@
       name = "vim-python3";
       majVer = "7";
       minVer = "4";
-      patch = "712";
+      patch = "729";
     };
   # Main changes
   in rec {
@@ -20,17 +20,66 @@
       };
     });
 
-    macvim-kaictl = stdenv.lib.overrideDerivation macvim (oldAttrs: {
-      name = "macvim-7.4.648";
-      src = fetchgit {
-        url = "http://github.com/genoma/macvim";
-        rev = "408cf6d87102ef68c15ef32c35c10826467c22bd";
-        sha256 = "0yp7y981smnq1fipg3dx2k0d3gw8vv4kdy8152xvdbd7v4lja9nl";
-      };
-    });
+    macvim-kaictl = stdenv.lib.overrideDerivation (
+      macvim.override {
+        ruby = null;
+      }
+      ) (
+        oldAttrs: {
+        name = "macvim-7.4.648";
+        buildInputs = [
+          gettext ncurses pkgconfig luajit tcl perl python
+        ];
+        configureFlags = [
+            #"--enable-cscope" # TODO: cscope doesn't build on Darwin yet
+            "--enable-fail-if-missing"
+            "--with-features=huge"
+            "--enable-gui=macvim"
+            "--enable-multibyte"
+            "--enable-nls"
+            "--enable-luainterp=dynamic"
+            "--enable-pythoninterp=dynamic"
+            "--enable-perlinterp=dynamic"
+            "--enable-rubyinterp=no"
+            "--enable-tclinterp=yes"
+            "--without-local-dir"
+            "--with-luajit"
+            "--with-lua-prefix=${luajit}"
+            "--with-tclsh=${tcl}/bin/tclsh"
+            "--with-tlib=ncurses"
+            "--with-compiledby=Nix"
+        ];
+        src = fetchgit {
+          url = "http://github.com/genoma/macvim";
+          rev = "408cf6d87102ef68c15ef32c35c10826467c22bd";
+          sha256 = "0yp7y981smnq1fipg3dx2k0d3gw8vv4kdy8152xvdbd7v4lja9nl";
+        };
+        postInstall = ''
+          mkdir -p $out/Applications
+          cp -r src/MacVim/build/Release/MacVim.app $out/Applications
 
-    vim-python3 = stdenv.lib.overrideDerivation 
-      (vim_configurable_nogui.override {
+          rm $out/bin/{Vimdiff,Vimtutor,Vim,ex,rVim,rview,view}
+
+          cp src/MacVim/mvim $out/bin
+          cp src/vimtutor $out/bin
+
+          for prog in "vimdiff" "vi" "vim" "ex" "rvim" "rview" "view"; do
+            ln -s $out/bin/mvim $out/bin/$prog
+          done
+
+          # Fix rpaths
+          exe="$out/Applications/MacVim.app/Contents/MacOS/Vim"
+          libperl=$(dirname $(find ${perl} -name "libperl.dylib"))
+          install_name_tool -add_rpath ${luajit}/lib $exe
+          install_name_tool -add_rpath ${tcl}/lib $exe
+          install_name_tool -add_rpath ${python}/lib $exe
+          install_name_tool -add_rpath $libperl $exe
+        '';
+      }
+    );
+
+    vim-python3 = stdenv.lib.overrideDerivation
+      (vim_configurable.override {
         config.vim = {
           python = true;
           lua = true;
@@ -42,18 +91,44 @@
         lua = lua5_1;
         darwinSupport = stdenv.isDarwin;
         guiSupport = false;
+        gui = "no";
         multibyteSupport = true;
-        python = python34-kaictl;
+        python = python3-kaictl;
       })
       (oldAttrs: {
       name = "vim-python3-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
       src = fetchgit {
         url = "http://github.com/vim/vim";
-        # url = "http://github.com/vim-jp/vim";
         rev = "refs/tags/v${vimV.majVer}-${vimV.minVer}-${vimV.patch}";
-        # sha256 = "0irp4cd6hcgzz3w5fjxvqvlfclayi2wg67h3y6y517y9l08pslnw";
-        sha256 = "00kv5fvhsdvpcnf8ca9xs3gz3fr8jvnb8r5znwwadxhv73gzlf01";
-        # sha256 = "0irp4cd6hcgzz3w5fjxvqvlfclayi2wg67h3y6y517y9l08pslnw";
+        # sha256 = "03b7cb966e9fe97ae2bb6d7e1e0ec2265aa28228c6a83842bb5274d100788849";
+        sha256 = "564de68e69ae1476d886b0781d98b3fb497c65ac2ece3248bad04b096f7d8113";
+      };
+    });
+
+    vim-python2 = stdenv.lib.overrideDerivation
+      (vim_configurable.override {
+        config.vim = {
+          python = true;
+          lua = true;
+          multibyte = true;
+          ruby = false;
+          gui = false;
+        };
+        ruby = ruby;
+        lua = lua5_1;
+        darwinSupport = stdenv.isDarwin;
+        guiSupport = false;
+        gui = "no";
+        multibyteSupport = true;
+        python = python2-kaictl;
+      })
+      (oldAttrs: {
+      name = "vim-python2-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
+      src = fetchgit {
+        url = "http://github.com/vim/vim";
+        rev = "refs/tags/v${vimV.majVer}-${vimV.minVer}-${vimV.patch}";
+        # sha256 = "03b7cb966e9fe97ae2bb6d7e1e0ec2265aa28228c6a83842bb5274d100788849";
+        sha256 = "564de68e69ae1476d886b0781d98b3fb497c65ac2ece3248bad04b096f7d8113";
       };
     });
 
