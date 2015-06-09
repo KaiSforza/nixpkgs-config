@@ -203,6 +203,30 @@
       guiSupport = false;
       sendEmailSupport = false;	# requires plenty of perl libraries
     };
+
+    all = buildEnv {
+      name = "all";
+      paths = [
+        vim-python3
+        ipython3
+        coreutils
+        file
+        findutils
+        git-kaictl
+        gnused
+        less
+        # macvim
+        openssh
+        python3-kaictl
+        rsync
+        tmux
+        tree
+        weechat-kaictl
+        zsh
+        curl
+        nix-repl
+      ];
+    };
   };
   allowUnfree = true;
 }
