@@ -60,31 +60,66 @@
     #######################################################################
     ###                          Custom Packages                        ###
     #######################################################################
-    # Custom python 3 package.
-    python34-kaictl = stdenv.lib.hiPrio (
-      callPackage /nix/nixpkgs/pkgs/development/interpreters/python/3.4 {
-        libX11 = null;
-        xproto = null;
-        tcl = null;
-        tk = null;
-        self = python34;
-      }
-    );
-    # Sets up python34 packages to be built against my python34-kaictl
-    python34Packages-kaictl = recurseIntoAttrs (callPackage /nix/nixpkgs/pkgs/top-level/python-packages.nix {
-      python = python34-kaictl;
-      self = python34Packages-kaictl;
-    });
+    python2-kaictl = python2.override {
+      x11Support = false;
+      tcl = null; tk = null; x11 = null; libX11 = null;
+    };
+    python2Packages-kaictl = python2Packages.override {
+      python = python2-kaictl;
+      self = python2Packages-kaictl;
+    };
+    python3-kaictl = python3.override {
+      tcl = null; tk = null; libX11 = null; xproto = null;
+    };
+    python3Packages-kaictl = python3Packages.override {
+      python = python3-kaictl;
+      self = python3Packages-kaictl;
+    };
+
     # builds ipython3 without a bunch of gui stuff.
-    ipython3 = callPackage /nix/nixpkgs/pkgs/shells/ipython {
-      buildPythonPackage = python34Packages-kaictl.buildPythonPackage;
-      pythonPackages = python34Packages-kaictl;
+    ipython3 = python3Packages-kaictl.ipython.override {
       pyqt4 = false;
       notebookSupport = false;
       qtconsoleSupport = false;
       pylabSupport = false;
       pylabQtSupport = false;
     };
+
+    weechat-kaictl =
+      let ourPythonPackages = python3Packages-kaictl;
+          ourPython = ourPythonPackages.python;
+      in stdenv.lib.overrideDerivation (
+      pkgs.weechat.override {
+        python = ourPython;
+        pythonPackages = ourPythonPackages;
+        guile = null;
+        tcl = null;
+        lua5 = null;
+        ruby = null;
+      }
+    ) (
+      oldAttrs: {
+        src = fetchgit {
+          url = "https://github.com/weechat/weechat";
+          rev = "f026ba51605915772b1aef6fad20ef4f5ce39d02";
+          sha256 = "c3eff3b4358a2014504479ff0c42abb9d7c4d950f46d912e060835616686ae41";
+        };
+        postInstall = null;
+        patches = stdenv.lib.optional (ourPython ? isPy3) ./weechat-python.diff;
+        cmakeFlags = ["-DENABLE_PYTHON=ON"
+                      "-DPYTHON_EXECUTABLE=${ourPython}/bin/${ourPython.executable}"
+                      "-DPYTHON_LIBRARY=${ourPython}/lib/lib${ourPython.libPrefix}${
+                        if ourPython ? isPy3 then "m"
+                                             else ""}.${
+                        if stdenv.isDarwin then "dylib"
+                                           else "so"}"
+                      "-DENABLE_GUILE=OFF"
+                      "-DENABLE_TCL=OFF"
+                      "-DENABLE_LUA=OFF"
+                      "-DENABLE_JAVASCRIPT=OFF"
+                      "-DENABLE_RUBY=OFF"
+                      ] ++ stdenv.lib.optional (ourPython ? isPy3) "-DENABLE_PYTHON3=ON";
+    });
   };
   allowUnfree = true;
 }

@@ -1,0 +1,13 @@
+diff --git a/cmake/FindPython.cmake b/cmake/FindPython.cmake
+index 878b31c..04abaa4 100644
+--- a/cmake/FindPython.cmake
++++ b/cmake/FindPython.cmake
+@@ -57,7 +57,7 @@ if(PYTHON_EXECUTABLE)
+     )
+ 
+   execute_process(
+-    COMMAND ${PYTHON_EXECUTABLE} -c "import sys; from distutils.sysconfig import *; sys.stdout.write(get_config_var('LINKFORSHARED'))"
++    COMMAND ${PYTHON_EXECUTABLE} -c "import sys,re; from distutils.sysconfig import *; sys.stdout.write(re.sub(',-stack_size[^ ]* ', ' ', get_config_var('LINKFORSHARED')))"
+     OUTPUT_VARIABLE PYTHON_LFLAGS
+     )
+ 
