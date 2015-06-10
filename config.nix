@@ -197,8 +197,8 @@
     });
 
     git-kaictl = git.override {
-      pythonSupport = true;
-      python = python2-kaictl;
+      pythonSupport = false;
+      # python = python2-kaictl;
       svnSupport = false;
       guiSupport = false;
       sendEmailSupport = false;	# requires plenty of perl libraries
