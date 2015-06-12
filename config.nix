@@ -6,7 +6,13 @@
       name = "vim-python3";
       majVer = "7";
       minVer = "4";
-      patch = "729";
+      patch = "738";
+      sha = "6ab914c0e536b202bab7e1a25d6a03b60fbac8e1d655b864e34ccd25a73d6a1b";
+    };
+    vimsrc = pkgs.fetchgit {
+      url = "http://github.com/vim/vim";
+      rev = "refs/tags/v${vimV.majVer}-${vimV.minVer}-${vimV.patch}";
+      sha256 = vimV.sha;
     };
   # Main changes
   in rec {
@@ -78,58 +84,33 @@
       }
     );
 
-    vim-python3 = stdenv.lib.overrideDerivation
-      (vim_configurable.override {
-        config.vim = {
-          python = true;
-          lua = true;
-          multibyte = true;
-          ruby = false;
-          gui = false;
-        };
-        ruby = ruby;
-        lua = lua5_1;
-        darwinSupport = stdenv.isDarwin;
-        guiSupport = false;
-        gui = "no";
-        multibyteSupport = true;
-        python = python3-kaictl;
-      })
-      (oldAttrs: {
-      name = "vim-python3-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
-      src = fetchgit {
-        url = "http://github.com/vim/vim";
-        rev = "refs/tags/v${vimV.majVer}-${vimV.minVer}-${vimV.patch}";
-        # sha256 = "03b7cb966e9fe97ae2bb6d7e1e0ec2265aa28228c6a83842bb5274d100788849";
-        sha256 = "564de68e69ae1476d886b0781d98b3fb497c65ac2ece3248bad04b096f7d8113";
+    _vim-kaictl-base = vim_configurable.override {
+      config.vim = {
+        python = true;
+        lua = true;
+        multibyte = true;
+        ruby = false;
+        gui = false;
       };
-    });
+      ruby = ruby;
+      lua = lua5_1;
+      darwinSupport = stdenv.isDarwin;
+      guiSupport = false;
+      gui = "no";
+      multibyteSupport = true;
+    };
 
-    vim-python2 = stdenv.lib.overrideDerivation
-      (vim_configurable.override {
-        config.vim = {
-          python = true;
-          lua = true;
-          multibyte = true;
-          ruby = false;
-          gui = false;
-        };
-        ruby = ruby;
-        lua = lua5_1;
-        darwinSupport = stdenv.isDarwin;
-        guiSupport = false;
-        gui = "no";
-        multibyteSupport = true;
-        python = python2-kaictl;
-      })
+    vim-python3 = stdenv.lib.overrideDerivation
+      (_vim-kaictl-base.override { python = python3-kaictl; })
       (oldAttrs: {
-      name = "vim-python2-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
-      src = fetchgit {
-        url = "http://github.com/vim/vim";
-        rev = "refs/tags/v${vimV.majVer}-${vimV.minVer}-${vimV.patch}";
-        # sha256 = "03b7cb966e9fe97ae2bb6d7e1e0ec2265aa28228c6a83842bb5274d100788849";
-        sha256 = "564de68e69ae1476d886b0781d98b3fb497c65ac2ece3248bad04b096f7d8113";
-      };
+        name = "vim-python3-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
+        src = vimsrc;
+    });
+    vim-python2 = stdenv.lib.overrideDerivation
+      (_vim-kaictl-base.override { python = python2-kaictl; })
+      (oldAttrs: {
+        name = "vim-python2-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
+        src = vimsrc;
     });
 
     #######################################################################
@@ -206,6 +187,7 @@
 
     all = buildEnv {
       name = "all";
+      ignoreCollisions = true;
       paths = [
         vim-python3
         ipython3
@@ -215,7 +197,6 @@
         git-kaictl
         gnused
         less
-        # macvim
         openssh
         python3-kaictl
         rsync
@@ -225,7 +206,7 @@
         zsh
         curl
         nix-repl
-      ];
+      ] ++ stdenv.lib.optional stdenv.isDarwin [macvim-kaictl];
     };
   };
   allowUnfree = true;
