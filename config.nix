@@ -32,55 +32,55 @@
       }
       ) (
         oldAttrs: {
-        name = "macvim-7.4.648";
-        buildInputs = [
-          gettext ncurses pkgconfig luajit tcl perl python
-        ];
-        configureFlags = [
-            #"--enable-cscope" # TODO: cscope doesn't build on Darwin yet
-            "--enable-fail-if-missing"
-            "--with-features=huge"
-            "--enable-gui=macvim"
-            "--enable-multibyte"
-            "--enable-nls"
-            "--enable-luainterp=dynamic"
-            "--enable-pythoninterp=dynamic"
-            "--enable-perlinterp=dynamic"
-            "--enable-rubyinterp=no"
-            "--enable-tclinterp=yes"
-            "--without-local-dir"
-            "--with-luajit"
-            "--with-lua-prefix=${luajit}"
-            "--with-tclsh=${tcl}/bin/tclsh"
-            "--with-tlib=ncurses"
-            "--with-compiledby=Nix"
-        ];
-        src = fetchgit {
-          url = "http://github.com/genoma/macvim";
-          rev = "408cf6d87102ef68c15ef32c35c10826467c22bd";
-          sha256 = "0yp7y981smnq1fipg3dx2k0d3gw8vv4kdy8152xvdbd7v4lja9nl";
-        };
-        postInstall = ''
-          mkdir -p $out/Applications
-          cp -r src/MacVim/build/Release/MacVim.app $out/Applications
+          name = "macvim-kaictl-7.4.648";
+          buildInputs = [
+            gettext ncurses pkgconfig luajit tcl perl python
+          ];
+          configureFlags = [
+              #"--enable-cscope" # TODO: cscope doesn't build on Darwin yet
+              "--enable-fail-if-missing"
+              "--with-features=huge"
+              "--enable-gui=macvim"
+              "--enable-multibyte"
+              "--enable-nls"
+              "--enable-luainterp=dynamic"
+              "--enable-pythoninterp=dynamic"
+              "--enable-perlinterp=dynamic"
+              "--enable-rubyinterp=no"
+              "--enable-tclinterp=yes"
+              "--without-local-dir"
+              "--with-luajit"
+              "--with-lua-prefix=${luajit}"
+              "--with-tclsh=${tcl}/bin/tclsh"
+              "--with-tlib=ncurses"
+              "--with-compiledby=Nix"
+          ];
+          src = fetchgit {
+            url = "http://github.com/genoma/macvim";
+            rev = "408cf6d87102ef68c15ef32c35c10826467c22bd";
+            sha256 = "0yp7y981smnq1fipg3dx2k0d3gw8vv4kdy8152xvdbd7v4lja9nl";
+          };
+          postInstall = ''
+            mkdir -p $out/Applications
+            cp -r src/MacVim/build/Release/MacVim.app $out/Applications
 
-          rm $out/bin/{Vimdiff,Vimtutor,Vim,ex,rVim,rview,view}
+            rm $out/bin/{Vimdiff,Vimtutor,Vim,ex,rVim,rview,view}
 
-          cp src/MacVim/mvim $out/bin
-          cp src/vimtutor $out/bin
+            cp src/MacVim/mvim $out/bin
+            cp src/vimtutor $out/bin
 
-          for prog in "vimdiff" "vi" "vim" "ex" "rvim" "rview" "view"; do
-            ln -s $out/bin/mvim $out/bin/$prog
-          done
+            for prog in "vimdiff" "vi" "vim" "ex" "rvim" "rview" "view"; do
+              ln -s $out/bin/mvim $out/bin/$prog
+            done
 
-          # Fix rpaths
-          exe="$out/Applications/MacVim.app/Contents/MacOS/Vim"
-          libperl=$(dirname $(find ${perl} -name "libperl.dylib"))
-          install_name_tool -add_rpath ${luajit}/lib $exe
-          install_name_tool -add_rpath ${tcl}/lib $exe
-          install_name_tool -add_rpath ${python}/lib $exe
-          install_name_tool -add_rpath $libperl $exe
-        '';
+            # Fix rpaths
+            exe="$out/Applications/MacVim.app/Contents/MacOS/Vim"
+            libperl=$(dirname $(find ${perl} -name "libperl.dylib"))
+            install_name_tool -add_rpath ${luajit}/lib $exe
+            install_name_tool -add_rpath ${tcl}/lib $exe
+            install_name_tool -add_rpath ${python}/lib $exe
+            install_name_tool -add_rpath $libperl $exe
+          '';
       }
     );
 
