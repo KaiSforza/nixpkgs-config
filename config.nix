@@ -6,8 +6,8 @@
       name = "vim-python3";
       majVer = "7";
       minVer = "4";
-      patch = "738";
-      sha = "6ab914c0e536b202bab7e1a25d6a03b60fbac8e1d655b864e34ccd25a73d6a1b";
+      patch = "788";
+      sha = "9f777721d5b093f1f80717c821539818268f51c4dc5fbc8b1531c09520059051";
     };
     vimsrc = pkgs.fetchgit {
       url = "http://github.com/vim/vim";
@@ -194,7 +194,7 @@
         coreutils
         file
         findutils
-        git-kaictl
+        gitMinimal
         gnused
         less
         openssh
