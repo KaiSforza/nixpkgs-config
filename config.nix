@@ -185,6 +185,16 @@
       sendEmailSupport = false;	# requires plenty of perl libraries
     };
 
+    youtube-dl-kaictl = stdenv.lib.overrideDerivation
+        python3Packages-kaictl.youtube-dl (oldAttrs: {
+            version = "2015.07.21";
+
+            src = fetchurl {
+                url = "http://youtube-dl.org/downloads/2015.07.21/youtube-dl-2015.07.21.tar.gz";
+                sha256 = "1n99zylk0wfw9mmyqagv32rcd2nfc2a5s6x03h4d9bgi1p77chhb";
+            };
+        });
+
     all = buildEnv {
       name = "all";
       ignoreCollisions = true;
