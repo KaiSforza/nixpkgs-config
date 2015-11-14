@@ -11,8 +11,8 @@ in
       name = "vim-python3";
       majVer = "7";
       minVer = "4";
-      patch = "788";
-      sha = "9f777721d5b093f1f80717c821539818268f51c4dc5fbc8b1531c09520059051";
+      patch = "922";
+      sha = "59c693b13ccd8fdf03e75082059449c016a69e2dac669c16ef8cd24becf74710";
     };
     vimsrc = pkgs.fetchgit {
       url = "http://github.com/vim/vim";
