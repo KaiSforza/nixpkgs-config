@@ -1,7 +1,12 @@
+let
+  pkgs = import <nixpkgs> {};
+in
+# {{{
 {
+  # Initial definitions {{{
   packageOverrides = pkgs: with pkgs;
-  # For version declarations and such
   let
+    # version declarations {{{
     vimV = {
       name = "vim-python3";
       majVer = "7";
@@ -11,21 +16,39 @@
     };
     vimsrc = pkgs.fetchgit {
       url = "http://github.com/vim/vim";
-      rev = "refs/tags/v${vimV.majVer}-${vimV.minVer}-${vimV.patch}";
+      rev = "refs/tags/v${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
       sha256 = vimV.sha;
     };
-  # Main changes
-  in rec {
-    # Build hub from git
-    hub-kaictl = stdenv.lib.overrideDerivation gitAndTools.hub (oldAttrs: {
-      name = "hubUnstable";
-      src = fetchgit {
-        url = "http://github.com/github/hub";
-        rev = "64187e3cb84c6956826acad2803958730a7ea180";
-        sha256 = "0s797d9gjbj0rh9lgi4dkc3kpibbih0y2fv92h8q3ai7q54gx84q";
-      };
-    });
+    ytdl = {
+      ver = "2015.11.13";
+      hash = "02140awgwvspnq226xpbc4clijmqkk8hlmfqhmmzzbihvs2b4xfx";
+    };
+    #}}}
+  # }}}
 
+  # Packages {{{
+  in rec {
+    # {{{ Package Modifications
+    #######################################################################
+    ###                          Custom Packages                        ###
+    #######################################################################
+    # {{{ Vims
+    _vim-kaictl-base = vim_configurable.override {
+      config.vim = {
+        python = true;
+        lua = true;
+        multibyte = true;
+        ruby = false;
+        gui = false;
+      };
+      ruby = ruby;
+      lua = lua5_1;
+      darwinSupport = stdenv.isDarwin;
+      guiSupport = false;
+      gui = "no";
+      multibyteSupport = true;
+    };
+    # macvim {{{
     macvim-kaictl = stdenv.lib.overrideDerivation (
       macvim.override {
         ruby = null;
@@ -83,64 +106,50 @@
           '';
       }
     );
+    # }}}
 
-    _vim-kaictl-base = vim_configurable.override {
-      config.vim = {
-        python = true;
-        lua = true;
-        multibyte = true;
-        ruby = false;
-        gui = false;
-      };
-      ruby = ruby;
-      lua = lua5_1;
-      darwinSupport = stdenv.isDarwin;
-      guiSupport = false;
-      gui = "no";
-      multibyteSupport = true;
-    };
-
+    # Python 3 version {{{
     vim-python3 = stdenv.lib.overrideDerivation
       (_vim-kaictl-base.override { python = python3-kaictl; })
       (oldAttrs: {
         name = "vim-python3-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
         src = vimsrc;
     });
-    vim-python2 = stdenv.lib.overrideDerivation
-      (_vim-kaictl-base.override { python = python2-kaictl; })
-      (oldAttrs: {
-        name = "vim-python2-${vimV.majVer}.${vimV.minVer}.${vimV.patch}";
-        src = vimsrc;
-    });
+    # }}}
 
-    #######################################################################
-    ###                          Custom Packages                        ###
-    #######################################################################
+    # Python 2 version {{{
     python2-kaictl = python2.override {
       x11Support = false;
       tcl = null; tk = null; x11 = null; libX11 = null;
     };
+    # }}}
+    # }}}
+
+    # Custom python setups {{{
+    # Python 2 {{{
     python2Packages-kaictl = python2Packages.override {
       python = python2-kaictl;
       self = python2Packages-kaictl;
-    };
-    python3-kaictl = python3.override {
+    }; # }}}
+    # Python 3 {{{
+    python3-kaictl = python35.override {
       tcl = null; tk = null; libX11 = null; xproto = null;
     };
-    python3Packages-kaictl = python3Packages.override {
+    python3Packages-kaictl = python35Packages.override {
       python = python3-kaictl;
       self = python3Packages-kaictl;
-    };
-
-    # builds ipython3 without a bunch of gui stuff.
+    }; # }}}
+    # ipython 3 (no gui) {{{
     ipython3 = python3Packages-kaictl.ipython.override {
       pyqt4 = false;
       notebookSupport = false;
       qtconsoleSupport = false;
       pylabSupport = false;
       pylabQtSupport = false;
-    };
+    }; # }}}
+    # }}}
 
+    # Weechat {{{
     weechat-kaictl =
       let ourPythonPackages = python3Packages-kaictl;
           ourPython = ourPythonPackages.python;
@@ -175,31 +184,53 @@
                       "-DENABLE_JAVASCRIPT=OFF"
                       "-DENABLE_RUBY=OFF"
                       ] ++ stdenv.lib.optional (ourPython ? isPy3) "-DENABLE_PYTHON3=ON";
-    });
+    }); # }}}
 
+    # mvp {{{
+    mpv-kaictl = callPackage ./pkgs/mpv {
+      lua = lua5_1;
+      lua5_sockets = lua5_1_sockets;
+      youtubeSupport = true;
+      youtube-dl = youtube-dl-kaictl;
+      vaapiSupport = true;
+      vaapi = vaapiIntel;
+    }; # }}}
+
+    # Git {{{
     git-kaictl = git.override {
       pythonSupport = false;
-      # python = python2-kaictl;
+      python = python2-kaictl;
       svnSupport = false;
       guiSupport = false;
       sendEmailSupport = false;	# requires plenty of perl libraries
-    };
+    }; # }}}
 
+    # Youtube-dl {{{
     youtube-dl-kaictl = stdenv.lib.overrideDerivation
         python3Packages-kaictl.youtube-dl (oldAttrs: {
-            version = "2015.07.21";
+            name = "youtube-dl-${ytdl.ver}";
 
             src = fetchurl {
-                url = "http://youtube-dl.org/downloads/2015.07.21/youtube-dl-2015.07.21.tar.gz";
-                sha256 = "1n99zylk0wfw9mmyqagv32rcd2nfc2a5s6x03h4d9bgi1p77chhb";
+                url = "http://youtube-dl.org/downloads/${ytdl.ver}/youtube-dl-${ytdl.ver}.tar.gz";
+                sha256 = ytdl.hash;
             };
-        });
+        }); # }}}
+    # }}}
 
+    # Package lists {{{
+    games = buildEnv {
+      name = "games";
+      paths = [
+        firefox
+        steam
+      ];
+    };
     all = buildEnv {
       name = "all";
       ignoreCollisions = true;
       paths = [
         vim-python3
+        ctags
         ipython3
         coreutils
         file
@@ -213,11 +244,33 @@
         tmux
         tree
         weechat-kaictl
+        aspellDicts.en
         zsh
         curl
         nix-repl
-      ] ++ stdenv.lib.optional stdenv.isDarwin [macvim-kaictl];
-    };
-  };
+        nix-prefetch-scripts
+      ] ++ stdenv.lib.optionals stdenv.isDarwin [ macvim-kaictl ]
+        ++ stdenv.lib.optionals stdenv.isLinux [
+          i3lock
+          lzop
+          dmenu
+          mpd
+          mpc_cli
+          vimpc
+          mpv-kaictl
+          youtube-dl-kaictl
+          ncurses
+          pamixer
+          rxvt_unicode-with-plugins
+          unzip
+          xorg.xbacklight
+          zathura
+        ];
+    }; # }}}
+  }; # }}}
+  # Configuration {{{
   allowUnfree = true;
+  # }}}
 }
+
+# vim: set fdm=marker:
