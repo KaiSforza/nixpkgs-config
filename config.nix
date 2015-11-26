@@ -120,7 +120,7 @@ in
     # Python 2 version {{{
     python2-kaictl = python2.override {
       x11Support = false;
-      tcl = null; tk = null; x11 = null; libX11 = null;
+      tcl = null; tk = null; libX11 = null;
     };
     # }}}
     # }}}
