@@ -47,6 +47,15 @@ in
       guiSupport = false;
       gui = "no";
       multibyteSupport = true;
+      gtk = null;
+      libX11 = null;
+      libXext = null;
+      libSM = null;
+      libXpm = null;
+      libXt = null;
+      libXaw = null;
+      libXau = null;
+      libXmu = null;
     };
     # macvim {{{
     macvim-kaictl = stdenv.lib.overrideDerivation (
