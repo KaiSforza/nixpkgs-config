@@ -26,7 +26,7 @@ in
     #}}}
   # }}}
 
-  # Packages {{{
+  # packageOverrides {{{
   in rec {
     # {{{ Package Modifications
     #######################################################################
@@ -118,26 +118,67 @@ in
     # }}}
 
     # Python 2 version {{{
-    python2-kaictl = python2.override {
-      x11Support = false;
-      tcl = null; tk = null; libX11 = null;
-    };
     # }}}
     # }}}
 
     # Custom python setups {{{
     # Python 2 {{{
+    python2-kaictl = python2.override {
+      x11Support = false;
+      tcl = null; tk = null; libX11 = null;
+    };
     python2Packages-kaictl = python2Packages.override {
       python = python2-kaictl;
       self = python2Packages-kaictl;
     }; # }}}
+    # Python 2 Clang {{{
+    python2-kaictl-clang = python2.override {
+      stdenv = clangStdenv;
+      x11Support = false;
+      tcl = null; tk = null; libX11 = null;
+    };
+    python2Packages-kaictl-clang = python2Packages.override {
+      stdenv = clangStdenv;
+      python = python2-kaictl-clang;
+      self = python2Packages-kaictl-clang;
+    }; # }}}
+    # Python 33 {{{
+    python33-kaictl = python33.override {
+      tcl = null; tk = null; libX11 = null; xproto = null;
+      self = python33-kaictl;
+    };
+    python33Packages-kaictl = python33Packages.override {
+      python = python33-kaictl;
+      self = python33Packages-kaictl;
+    }; # }}}
+    # Python 34 {{{
+    python34-kaictl = python34.override {
+      tcl = null; tk = null; libX11 = null; xproto = null;
+      self = python34-kaictl;
+    };
+    python34Packages-kaictl = python34Packages.override {
+      python = python34-kaictl;
+      self = python34Packages-kaictl;
+    }; # }}}
     # Python 3 {{{
     python3-kaictl = python35.override {
       tcl = null; tk = null; libX11 = null; xproto = null;
+      self = python3-kaictl;
     };
     python3Packages-kaictl = python35Packages.override {
       python = python3-kaictl;
       self = python3Packages-kaictl;
+    }; # }}}
+    # Python 3 with clang {{{
+    python3-kaictl-clang = python35.override {
+      stdenv = clangStdenv;
+      tcl = null; tk = null; libX11 = null; xproto = null;
+      self = python3-kaictl-clang;
+    };
+    python3Packages-kaictl-clang = python35Packages.override {
+      stdenv = clangStdenv;
+      python = python3-kaictl-clang;
+      self = python3Packages-kaictl-clang;
     }; # }}}
     # ipython 3 (no gui) {{{
     ipython3 = python3Packages-kaictl.ipython.override {

@@ -11,5 +11,5 @@ buildPythonPackage rec {
   };
   # These are dependencies that will need to be called when the application
   # runs 
-  propagatedBuildInputs = [ python requests pyxdg ];
+  propagatedBuildInputs = [ python requests2 pyxdg ];
 }
