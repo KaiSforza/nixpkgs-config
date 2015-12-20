@@ -50,7 +50,7 @@ in
       gtk = null;
       libX11 = null;
       libXext = null;
-      libSM = null;
+      # libSM = null;
       libXpm = null;
       libXt = null;
       libXaw = null;
