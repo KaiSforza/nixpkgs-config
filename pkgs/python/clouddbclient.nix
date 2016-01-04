@@ -1,4 +1,4 @@
-{stdenv, pythonPackages, fetchgit, git, supernova, troveclient}:
+{stdenv, pythonPackages, fetchgit, git, supernova}:
 
 with pythonPackages;
 buildPythonPackage rec {
@@ -7,11 +7,10 @@ buildPythonPackage rec {
   buildInputs = [ git pbr ];
   # These are dependencies that will need to be called when the application
   # runs
-  doCheck = false;
   propagatedBuildInputs = [ python
                             requests2
                             Babel
                             six
                             supernova
-                            troveclient ];
+                            ];
 }
